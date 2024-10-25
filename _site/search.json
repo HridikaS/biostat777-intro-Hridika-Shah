@@ -1,0 +1,23 @@
+[
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Welcome to My Quarto Website",
+    "section": "",
+    "text": "Hi! My name is Hridika Shah and I am a doctoral candidate in Health Policy at the Johns Hopkins School of Public Health. My work is focused on policy to expand access to treatment for substance use disorder, particularly among people experiencing housing insecurity and people involved in the criminal-legal system. I’m especially interested in causal inference and policy evaluation. In my free time, I love to hike, watch reality tv, visit museums, and hunt for new cafes in Baltimore! I am hoping to strengthen my statistics and coding skills through this class."
+  },
+  {
+    "objectID": "example-analysis.html",
+    "href": "example-analysis.html",
+    "title": "Example Analysis",
+    "section": "",
+    "text": "You must describe what is the question you aim to answer with the data and data analysis. You must describe who is the intended audience for the data analysis. You must describe and link to where the original data come from that you chose. You must include a link to a data dictionary for the data or create one inside the webpage. Your analysis must include some minimal form of data wrangling with you using at least five different functions from dplyr or tidyr. Your analysis should include at least three plots with you using at least three different geom_() functions from ggplot2 (or another package with geom_() functions). Plots should have titles, subtitles, captions, and human-understandable axis labels. At least one plot should using a type of faceting (facet_grid() or facet_wrap()). Your analysis must include one image or table (not one you created yourself, but one you have saved locally or one from the web). Your analysis must include at least two different callout blocks. Your analysis must include a .bib file, which you use to reference at least three unique citations. For example, it could be to a website or paper from where the original data came from or it could be to a paper describing a method you are using to analyze the data. Your analysis must include the use of at least 1 margin content. You must summarize your analysis and/or results with a paragraph (4-6 sentences). At the end of the data analysis, list out each of the functions you used from each of the packages (dplyr, tidyr, and ggplot2) to help the TA with respect to making sure you met all the requirements described above."
+  }
+]
