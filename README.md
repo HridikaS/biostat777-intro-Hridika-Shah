@@ -2,6 +2,6 @@
 
 Author: Hridika Shah
 
-Website link: 
+Website link: https://hridikas.github.io/biostat777-intro-Hridika-Shah/
 
-Deployed using Quarto Pub, November 5, 2024
+Deployed using GitHub Pages, November 5, 2024
