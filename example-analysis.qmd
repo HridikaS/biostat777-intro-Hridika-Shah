@@ -4,39 +4,43 @@ bibliography: my-refs.bib
 csl: american-medical-association.csl
 ---
 
-1. You must describe what is the question you aim to answer with the data and data analysis.
+# Research Question:
+ What is the association between methamphetamine use and treatment outcomes among people receiving medications for opioid use disorder? In this analysis, I utilized data from the CDC's Medications for Opioid Use Disorder (MOUD) Study.[@cdc_medications_2024]
 
-**In this analysis, I utilized data from the CDC's Medications for Opioid Use Disorder (MOUD) Study to understand the association of co-use of opioids and methamphetamine with treatment outcomes and overdose.[@cdc_medications_2024]** 
+# Intended Audience:
+The intended audience for this analysis is practitioners and researchers trying to understand differences in medications for opioid use disroder treatment outcomes between people who do and do not use methamphetamine.
 
-2. You must describe who is the intended audience for the data analysis.
+# Data Source:
+The MOUD Study was a longitudinal, observational cohort study conducted from 2017 to 2021. The study sample recruited 1974 individuals with with opioid use disorder (OUD) from 62 outpatient facilities in 11 states over 18 months. The [MOUD Study data](https://www.cdc.gov/overdose-prevention/media/files/2024/04/Patient-18-month-Data.csv) as well as the [codebook](https://www.cdc.gov/overdose-prevention/media/pdfs/2024/04/The-MOUD-Study-Codebook.pdf) is publicly available on the CDC's website.[@cdc_medications_2024] 
 
-**The intended audience for this analysis is researchers trying to understand the nuances of polysubstance use on treatment outcomes, specifically among individuals seeking medications for opioid use disorder.** 
+::: {.callout-warning}
+The MOUD study data was collected at baseline, 6, 12, and 18 months. This descriptive analysis only utilized 18-month follow-up data which had a 53.4% response rate. The high rate of attrition may may be due to systemic drop-out and thus generalizability of results is limited.
+:::
 
-3. You must describe and link to where the original data come from that you chose.
+Below is a descriptive table with features of the recruitment faculities. 
+![Characteristics of the recruiting treatment facilities](images/table.png) [@dever_medications_2024]
 
-**The MOUD Study was a longitudinal, observational cohort study conducted from 2017 to 2021. The study sample recruited 1974 individuals with with opioid use disorder (OUD) from 62 outpatient facilities in 11 states over 18 months.**
-
-4. You must include a link to a data dictionary for the data or create one inside the webpage.
-
-**The [MOUD Study data](https://www.cdc.gov/overdose-prevention/media/files/2024/04/Patient-18-month-Data.csv) as well as the [codebook](https://www.cdc.gov/overdose-prevention/media/pdfs/2024/04/The-MOUD-Study-Codebook.pdf) is publicly available on the CDC's website.[@cdc_medications_2024]**
-
-5. Your analysis must include some minimal form of data wrangling with you using at least five different functions from dplyr or tidyr.
-
-**The data wrangling was done using the following functions: filter, mutate, group_by, summarize, count.**
-
+# Analysis
 ```{r}
 library(here)
 library(tidyverse)
 library(ggplot2)
 library(readr)
 library(dplyr)
+library(forcats)
 
 moud <- read_csv(here::here("data", "Patient-18-month-Data.csv"))
 moud_clean <- moud %>%
   filter(responded == 1 & MAT_COUN != 4) %>% # remove no response records, only counseling tx
   mutate(daysinxtx = as.numeric(daysinxtx),
-         socialsupportscore = as.numeric(socialsupportscore))
+         HU6 = as.numeric(HU6))
+```
 
+::: {.callout-note}
+In this analysis, we used lifetime use of methamphetamine, which is not an accurate measure of concurrent methamphetamine and opioid use. This descriptive analysis cannot provide insight into ongoing methamphatamine use while engaged in MOUD.
+:::
+
+```{r}
 retention_summary <- moud_clean %>% # retention by meth use and type of MOUD 
   group_by(SU10_10, MAT_COUN) %>%
   summarize(mean(daysinxtx)) %>% 
@@ -50,9 +54,28 @@ boxplot <- moud_clean %>% # boxplot comparing days in tx by lifetime meth use
   labs(title = "Distribution of Days in Treatment by Methamphetamine Use and Type of MOUD",
        x = "MOUD Type and Methamphetamine Use Status",
        y = "Log(Days in Treatment)") +
+  scale_x_discrete(
+    labels = c(
+      "0.1" = "No Meth Use, Methadone", 
+      "1.1" = "Meth Use, Methadone",
+      "0.2" = "No Meth Use, Buprenorphine", 
+      "1.2" = "Meth Use, Buprenorphine",
+      "0.3" = "No Meth Use, Naltrexone", 
+      "1.3" = "Meth Use, Naltrexone"
+    )) +
   theme_minimal()
 print(boxplot)
+```
 
+```{r}
+#| column: margin
+
+knitr::kable(
+  retention_summary[1:6, 1:3]
+)
+```
+
+```{r}
 abstinence_summary <- moud_clean %>% # percent 30 day abstinence by meth use
   group_by(SU10_10) %>%
   filter(abstinent30ohf != "U") %>%
@@ -63,67 +86,33 @@ bargraph <- abstinence_summary %>% # bargraph comparing percent abstinence by li
   filter(abstinent30ohf == 0) %>%  
   ggplot(aes(x = SU10_10, y = percent)) +  
   geom_bar(stat = "identity", fill = "lightblue", color = "black") + 
-  labs(title = "Percent Abstinence by Methamphetamine Use",
+  labs(title = "Percent Non-abstinence by Methamphetamine Use",
        x = "Methamphetamine Use",
-       y = "Percent Abstinent (30 days) from Opioids") +
+       y = "Percent Non-abstinent (30 days) from Opioids") +
+  scale_x_discrete(
+    breaks = c(0, 1),
+    labels = c("No", "Yes")
+  ) +
   theme_minimal()
 print(bargraph)
+```
 
-histogram <- moud_clean %>% # histogram of the distribution of support scores by lifetime meth use
-  ggplot(aes(x = socialsupportscore)) +
+```{r}
+histogram <- moud_clean %>% # histogram of the distribution of frequency of heroin use in past 90 days by lifetime meth use
+  ggplot(aes(x = HU6)) +
   geom_histogram(fill = "lightblue", color = "black") +  
-  facet_wrap(~SU10_10, scales = "free") + 
-  labs(title = "Distribution of Social Support Score by Methamphetamine Use",
-       x = "Social Support Score",
+  facet_wrap(~SU10_10) + 
+  labs(title = "Distribution of Past 90 Day Heroin Use",
+       x = "Number of days used heroin",
        y = "Count") +
   theme_minimal()
 print(histogram)
 ```
 
-6. Your analysis should include at least three plots with you using at least three different geom() functions from ggplot2 (or another package with geom() functions).
-
-**The analysis includes a boxplot, bar graph, and a histogram.**
-
-7. Plots should have titles, subtitles, captions, and human-understandable axis labels.
-
-**Make labels of x-axis in boxplot and bargraph readable**
-
-8. At least one plot should using a type of faceting (facet_grid() or facet_wrap()).
-
-**The histogram was made using facet_wrap to display differing distributions of social support scores between those who did and did not report methamphetamine use.**
-
-9. Your analysis must include one image or table (not one you created yourself, but one you have saved locally or one from the web).
-
-![Characteristics of the recruiting treatment facilities](images/table.png) [@dever_medications_2024]
-
-10. Your analysis must include at least two different callout blocks.
+# Summary
+Opioids and methamphetamine co-use has dramatically increased in the past decade, and there is a need to understand the imapct on traditional opioid use disorder treatment outcomes.[@han_methamphetamine_2021] The boxplot comparing days in treatment by lifetime methamphetamine use and type of medication indicates some minor, non-significant differences in retention. On the other hand, there is a drastic difference in abstinence from heroin between methamphatamine use groups, where individuals reporting any lifetime methamphetamine use had almsot two times greater percent non-abstinence. Although looking at the distribution of heroin use frequency over the last 90 days, it appears that there are similar distributions by methamphetamine use groups. This webstie includes a preliminary analysis to show the underlying differences between people with opioid use disorder by methamphatamine use status. The descriptive nature of this analysis calls for a more rigorous causal methods controlling for self-selection and biases between groups to understand the effect of methamphetamine use on treatment. 
 
 ::: {.callout-note}
-In this analysis, we used lifetime use of methamphetamine, which is not an accurate measure of concurrent methamphetamine and opioid use. This descriptive analysis cannot provide insight into ongoing methamphatamine use while engaged in MOUD.
+dplyr: filter, mutate, group_by, summarize, count
+ggplot2: geom_boxplot, geom_bar, geom_histogram
 :::
-
-::: {.callout-warning}
-The MOUD study data was collected at baseline, 6, 12, and 18 months. This descriptive analysis only utilized 18-month follow-up data which had a 53.4% response rate. The high rate of attrition may may be due to systemic drop-out and thus generalizability of results is limited.
-:::
-
-11. Your analysis must include a .bib file, which you use to reference at least three unique citations. For example, it could be to a website or paper from where the original data came from or it could be to a paper describing a method you are using to analyze the data.
-
-**I cited the CDC data webpage, the study with the characteristics of the recruitment sites (table above), and a sentence in the analysis.**
-
-12. Your analysis must include the use of at least 1 margin content.
-```{r}
-#| column: margin
-
-knitr::kable(
-  retention_summary[1:6, 1:3]
-)
-```
-
-13. You must summarize your analysis and/or results with a paragraph (4-6 sentences).
-
-**Opioids and methamphetamine co-use has dramatically increased in the past decade, and there is a need to understand the imapct on traditional opioid use disorder treatment outcomes.[@han_methamphetamine_2021]**
-
-14. At the end of the data analysis, list out each of the functions you used from each of the packages (dplyr, tidyr, and ggplot2) to help the TA with respect to making sure you met all the requirements described above.
-
-**dplyr: filter, mutate, group_by, summarize, count**
-**ggplot2: geom_boxplot, geom_bar, geom_histogram**
